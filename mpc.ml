@@ -1,6 +1,6 @@
 open Core
 
-type 'a parser = string -> ('a * string) list
+type 'a parser = char list -> ('a * (char list)) list
 
 let result v =
   (fun inp ->
@@ -12,9 +12,9 @@ let zero =
 
 let item =
   fun inp ->
-     match String.to_list inp with
+     match inp with
      | [] -> []
-     | x::xs -> [(x, String.of_char_list xs)]
+     | x::xs -> [(x, xs)]
 
 let bind p ~f =
   fun inp ->
@@ -51,10 +51,14 @@ let lower = range 'a' 'b'
 let upper = range 'A' 'B'
 let letter = lower <|> upper
 
-let rec exactly str =
-  match String.to_list str with
-  | [] -> result ""
+let rec exactly = function
+  | [] -> result []
   | x::xs ->
     let%bind _ = char x in
-    let%bind _ = exactly (String.of_char_list xs) in
-    result (String.of_char_list (x::xs))
+    let%bind _ = exactly xs in
+    result (x::xs)
+
+let rec many p =
+  let%bind x = p in
+  let%bind xs = many p in
+  result @@ List.append (x :: xs) [[]]

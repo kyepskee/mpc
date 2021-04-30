@@ -20,4 +20,6 @@ val lower : char parser
 val upper : char parser
 val letter : char parser
 
-val exactly : string -> string parser
+val exactly : char list -> (char list) parser
+
+val many : 'a parser -> ('a list) parser
