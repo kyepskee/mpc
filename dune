@@ -1,4 +1,5 @@
 (library
  (name mpc)
+ (public_name mpc)
  (libraries core)
  (preprocess (pps ppx_let)))

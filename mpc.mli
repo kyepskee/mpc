@@ -1,5 +1,7 @@
 type 'a parser
 
+val run_parser : 'a parser -> string -> ('a * string) list
+
 val result : 'a -> 'a parser
 
 val zero : 'a parser
@@ -20,6 +22,6 @@ val lower : char parser
 val upper : char parser
 val letter : char parser
 
-val exactly : char list -> (char list) parser
+val exactly : char list -> char list parser
 
 val many : 'a parser -> ('a list) parser

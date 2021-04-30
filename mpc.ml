@@ -2,6 +2,11 @@ open Core
 
 type 'a parser = char list -> ('a * (char list)) list
 
+let run_parser p text =
+  (* Printf.printf @@ p (String.to_list text); *)
+  List.map ~f:(fun (a, b) -> (a, String.of_char_list b))
+    @@ p (String.to_list text)
+
 let result v =
   (fun inp ->
      [(v, inp)])
@@ -47,8 +52,8 @@ module Let_syntax = struct
 end
 
 let digit = range '0' '9'
-let lower = range 'a' 'b'
-let upper = range 'A' 'B'
+let lower = range 'a' 'z'
+let upper = range 'A' 'Z'
 let letter = lower <|> upper
 
 let rec exactly = function
@@ -59,6 +64,8 @@ let rec exactly = function
     result (x::xs)
 
 let rec many p =
-  let%bind x = p in
-  let%bind xs = many p in
-  result @@ List.append (x :: xs) [[]]
+  begin
+    let%bind x = p in
+    let%bind xs = many p in
+    result (x::xs)
+  end <|> result []
