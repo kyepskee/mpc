@@ -1,2 +1,4 @@
 (library
- (name mpc))
+ (name mpc)
+ (libraries core)
+ (preprocess (pps ppx_let)))
