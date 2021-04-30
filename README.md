@@ -19,5 +19,5 @@ dune install
 
 -   opam
     -   core
-    -   ppx<sub>let</sub>
+    -   ppx\_let
 -   dune
