@@ -56,6 +56,7 @@ let lower = range 'a' 'z'
 let upper = range 'A' 'Z'
 let letter = lower <|> upper
 
+
 let rec exactly = function
   | [] -> result []
   | x::xs ->
@@ -69,3 +70,20 @@ let rec many p =
     let%bind xs = many p in
     result (x::xs)
   end <|> result []
+
+let posnum =
+  let%bind ds = many digit in
+  let digits = List.map ~f:(Fn.compose Int.of_string String.of_char) ds in
+  if List.length digits = 0
+  then zero (* zero digits is not a number *)
+  else
+    let (_, n) = List.fold_right digits ~init:(1, 0)
+        ~f:(fun el (power, sum) -> (power*10, power*el + sum)) in
+    result n
+
+let num =
+  begin (* negative number *)
+    let%bind _ = char '-' in
+    let%bind n = posnum in
+    result (-n)
+  end <|> posnum

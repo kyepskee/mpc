@@ -22,6 +22,13 @@ val lower : char parser
 val upper : char parser
 val letter : char parser
 
+val posnum : int parser
+val num : int parser
+
 val exactly : char list -> char list parser
 
 val many : 'a parser -> ('a list) parser
+
+module Let_syntax : sig
+  val bind : 'a parser -> f:('a -> 'b parser) -> 'b parser
+end
