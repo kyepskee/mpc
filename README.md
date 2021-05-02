@@ -21,3 +21,11 @@ cd mpc
 eval $(opam env) # evaluate opam context (if not already evaluated)
 dune install
 ```
+
+
+# Sources/inspirations
+
+-   <https://lprousnth.files.wordpress.com/2007/08/pcl.pdf>
+-   Monadic Parser Combinators, Hutton and Meijer ([link](http://www.cs.nott.ac.uk/~pszgmh/monparsing.pdf))
+-   [Opal](https://github.com/pyrocat101/opal)
+-   [Angstrom](https://github.com/inhabitedtype/angstrom/)
