@@ -7,7 +7,7 @@ let run_parser p text =
   List.map ~f:(fun (a, b) -> (a, String.of_char_list b))
     @@ p (String.to_list text)
 
-let result v =
+let return v =
   (fun inp ->
      [(v, inp)])
 
@@ -35,11 +35,11 @@ let (<|>) p q =
 let seq p q =
   p >>= fun x ->
   q >>= fun y ->
-  result (x, y)
+  return (x, y)
 
 let sat p =
   item >>= fun x ->
-  if p x then result x else zero
+  if p x then return x else zero
 
 let char c = sat (Char.equal c)
 
@@ -56,20 +56,20 @@ let lower = range 'a' 'z'
 let upper = range 'A' 'Z'
 let letter = lower <|> upper
 
-
-let rec exactly = function
-  | [] -> result []
+let rec exactly_clist = function
+  | [] -> return []
   | x::xs ->
     let%bind _ = char x in
-    let%bind _ = exactly xs in
-    result (x::xs)
+    let%bind _ = exactly_clist xs in
+    return (x::xs)
+
 
 let rec many p =
   begin
     let%bind x = p in
     let%bind xs = many p in
-    result (x::xs)
-  end <|> result []
+    return (x::xs)
+  end <|> return []
 
 let posnum =
   let%bind ds = many digit in
@@ -79,11 +79,23 @@ let posnum =
   else
     let (_, n) = List.fold_right digits ~init:(1, 0)
         ~f:(fun el (power, sum) -> (power*10, power*el + sum)) in
-    result n
+    return n
 
-let num =
+let num = (* TODO parse minus with optional parser *)
   begin (* negative number *)
     let%bind _ = char '-' in
     let%bind n = posnum in
-    result (-n)
+    return (-n)
   end <|> posnum
+
+let (>>|) p f = p >>= fun x -> return (f x)
+
+let (<$>) f p = p >>| f
+let (<*>) fp p = fp >>= fun f -> p >>| f
+
+let ( *>) p q = p >>= const q
+let (<* ) p q = p >>= fun x -> q >>= const @@ return x
+
+let exactly str = String.of_char_list <$> exactly_clist (String.to_list str)
+let whitechar = char ' ' <|> char '\t' <|> char '\n'
+let whitespace = String.of_char_list <$> many whitechar

@@ -2,7 +2,7 @@ type 'a parser
 
 val run_parser : 'a parser -> string -> ('a * string) list
 
-val result : 'a -> 'a parser
+val return : 'a -> 'a parser
 
 val zero : 'a parser
 val item : char parser
@@ -22,13 +22,24 @@ val lower : char parser
 val upper : char parser
 val letter : char parser
 
+val whitechar : char parser
+val whitespace : string parser
+
 val posnum : int parser
 val num : int parser
 
-val exactly : char list -> char list parser
+val exactly : string -> string parser
 
 val many : 'a parser -> ('a list) parser
 
 module Let_syntax : sig
   val bind : 'a parser -> f:('a -> 'b parser) -> 'b parser
 end
+
+val (>>|) : 'a parser -> ('a -> 'b) -> 'b parser
+
+val (<$>) : ('a -> 'b) -> 'a parser -> 'b parser
+val (<*>) : ('a -> 'b) parser -> 'a parser  -> 'b parser
+
+val ( *>) : _ parser -> 'a parser  -> 'a parser
+val (<* ) : 'a parser -> _ parser  -> 'a parser
