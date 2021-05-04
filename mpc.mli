@@ -1,6 +1,8 @@
 type 'a parser
 
-val run_parser : 'a parser -> string -> ('a * string) list
+module LazyList = Lazy_list
+
+val run_parser : 'a parser -> string -> ('a * string) LazyList.t
 
 val return : 'a -> 'a parser
 
@@ -30,7 +32,7 @@ val num : int parser
 
 val exactly : string -> string parser
 
-val many : 'a parser -> ('a list) parser
+val many : 'a parser -> 'a list parser
 
 module Let_syntax : sig
   val bind : 'a parser -> f:('a -> 'b parser) -> 'b parser

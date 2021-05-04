@@ -1,36 +1,39 @@
 open Core
 
-type 'a parser = char list -> ('a * (char list)) list
+module LazyList = Lazy_list
+
+type 'a parser = char list -> ('a * (char list)) LazyList.t
 
 let run_parser p text =
   (* Printf.printf @@ p (String.to_list text); *)
-  List.map ~f:(fun (a, b) -> (a, String.of_char_list b))
+  LazyList.map ~f:(fun (a, b) -> (a, String.of_char_list b))
     @@ p (String.to_list text)
 
 let return v =
   (fun inp ->
-     [(v, inp)])
+     LazyList.of_list [(v, inp)])
 
 let zero =
   (fun _inp ->
-     [])
+     LazyList.Nil)
 
 let item =
   fun inp ->
+  LazyList.of_list @@
      match inp with
      | [] -> []
      | x::xs -> [(x, xs)]
 
 let bind p ~f =
   fun inp ->
-  List.concat @@
-  List.map ~f:(fun (v, inp2) -> f v inp2)
+  LazyList.concat @@
+  LazyList.map ~f:(fun (v, inp2) -> f v inp2)
     (p inp)
 let (>>=) p f = bind p ~f
 
 let (<|>) p q =
   fun inp ->
-  List.append (p inp) (q inp)
+  LazyList.append_lazy (p inp) (lazy (q inp))
 
 let seq p q =
   p >>= fun x ->
@@ -44,7 +47,7 @@ let sat p =
 let char c = sat (Char.equal c)
 
 let range a b =
-  let f = (fun x -> a <= x && x <= b) in
+  let f = Char.(fun x -> a <= x && x <= b) in
   sat f
 
 module Let_syntax = struct
@@ -63,13 +66,23 @@ let rec exactly_clist = function
     let%bind _ = exactly_clist xs in
     return (x::xs)
 
+let fix f =
+  let rec p = lazy (f r)
+  and r = (fun clist -> (Lazy.force p) clist)
+  in
+  r
 
-let rec many p =
-  begin
-    let%bind x = p in
-    let%bind xs = many p in
-    return (x::xs)
-  end <|> return []
+let (>>|) p f = p >>= fun x -> return (f x)
+
+let (<$>) f p = p >>| f
+let (<*>) fp p = fp >>= fun f -> p >>| f
+
+let ( *>) p q = p >>= const q
+let (<* ) p q = p >>= fun x -> q >>= const @@ return x
+
+let many p =
+  fix (fun m ->
+      ((fun x y -> x::y) <$> p <*> m) <|> return [])
 
 let posnum =
   let%bind ds = many digit in
@@ -87,14 +100,6 @@ let num = (* TODO parse minus with optional parser *)
     let%bind n = posnum in
     return (-n)
   end <|> posnum
-
-let (>>|) p f = p >>= fun x -> return (f x)
-
-let (<$>) f p = p >>| f
-let (<*>) fp p = fp >>= fun f -> p >>| f
-
-let ( *>) p q = p >>= const q
-let (<* ) p q = p >>= fun x -> q >>= const @@ return x
 
 let exactly str = String.of_char_list <$> exactly_clist (String.to_list str)
 let whitechar = char ' ' <|> char '\t' <|> char '\n'
