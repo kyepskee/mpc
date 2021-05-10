@@ -84,6 +84,11 @@ let many p =
   fix (fun m ->
       ((fun x y -> x::y) <$> p <*> m) <|> return [])
 
+let many1 p =
+  let%bind x = p in
+  let%bind xs = many p in
+  return @@ x::xs
+
 let posnum =
   let%bind ds = many digit in
   let digits = List.map ~f:(Fn.compose Int.of_string String.of_char) ds in
@@ -94,7 +99,7 @@ let posnum =
         ~f:(fun el (power, sum) -> (power*10, power*el + sum)) in
     return n
 
-let num = (* TODO parse minus with optional parser *)
+let num =
   begin (* negative number *)
     let%bind _ = char '-' in
     let%bind n = posnum in

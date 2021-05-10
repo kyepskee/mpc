@@ -33,6 +33,7 @@ val num : int parser
 val exactly : string -> string parser
 
 val many : 'a parser -> 'a list parser
+val many1 : 'a parser -> 'a list parser
 
 module Let_syntax : sig
   val bind : 'a parser -> f:('a -> 'b parser) -> 'b parser
@@ -45,3 +46,5 @@ val (<*>) : ('a -> 'b) parser -> 'a parser  -> 'b parser
 
 val ( *>) : _ parser -> 'a parser  -> 'a parser
 val (<* ) : 'a parser -> _ parser  -> 'a parser
+
+val fix : ('a parser -> 'a parser) -> 'a parser
